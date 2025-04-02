@@ -14,10 +14,7 @@ namespace RoslynCodeCompiler
 {
     public class CodeCompiler
     {
-        public async Task CompileAsync(
-            string code,
-            string outputPath,
-            IEnumerable<NuGetPackageReference> nuGetReferences = null)
+        public async Task CompileAsync(string code, string outputPath, IEnumerable<NuGetPackageReference> nuGetReferences = null)
         {
             // Validate code for top-level statements
             var syntaxTree = CSharpSyntaxTree.ParseText(code);
@@ -81,9 +78,8 @@ namespace RoslynCodeCompiler
             return references;
         }
 
-        private async Task AddNuGetReferencesAsync(
-    IEnumerable<NuGetPackageReference> nuGetReferences,
-    List<MetadataReference> metadataReferences)
+        private async Task AddNuGetReferencesAsync(IEnumerable<NuGetPackageReference> nuGetReferences,
+                                                   List<MetadataReference> metadataReferences)
         {
             using var cache = new SourceCacheContext();
             var logger = NullLogger.Instance;
@@ -109,14 +105,14 @@ namespace RoslynCodeCompiler
 
                 // 创建正确的PackageResolverContext
                 var resolverContext = new PackageResolverContext(
-                    DependencyBehavior.Lowest,
-                    new[] { packageRef.PackageId },
-                    Enumerable.Empty<string>(),
-                    Enumerable.Empty<PackageReference>(),
-                    Enumerable.Empty<PackageIdentity>(),
-                    availablePackages,
-                    (IEnumerable<PackageSource>)repositories,  // 修正参数类型
-                    logger);
+                    dependencyBehavior: DependencyBehavior.Lowest,
+                    targetIds: new[] { packageRef.PackageId },
+                    requiredPackageIds: Enumerable.Empty<string>(),
+                    packagesConfig: Enumerable.Empty<PackageReference>(),
+                    preferredVersions: Enumerable.Empty<PackageIdentity>(),
+                    availablePackages: availablePackages,
+                    packageSources: repositories.Select(r => r.PackageSource), // 关键修正点
+                    log: logger);
 
                 var resolver = new PackageResolver();
                 var resolvedPackages = resolver.Resolve(resolverContext, cancellationToken)

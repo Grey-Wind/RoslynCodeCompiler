@@ -1,4 +1,5 @@
-﻿using RoslynCodeCompiler;
+﻿using NuGet.Versioning;
+using RoslynCodeCompiler;
 
 namespace CompilerTest
 {
@@ -6,7 +7,10 @@ namespace CompilerTest
     {
         static async Task Main()
         {
-            CodeCompiler compiler = new CodeCompiler();
+            var runtimeAssembly = typeof(object).Assembly;
+            Console.WriteLine($"System.Runtime Version: {runtimeAssembly.GetName().Version}");
+
+            CodeCompiler compiler = new();
 
             var code = @"
 using System;
@@ -40,6 +44,8 @@ namespace HelloWorld
             {
                 Console.WriteLine(ex.Message);
             }
+
+            Console.ReadLine();
         }
     }
 }
