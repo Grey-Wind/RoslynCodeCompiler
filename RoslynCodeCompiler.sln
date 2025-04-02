@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35913.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynCodeCompiler", "src\RoslynCodeCompiler\RoslynCodeCompiler.csproj", "{390FB0C2-4B62-7634-1A23-93512F314EA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynCodeCompiler.Test", "test\RoslynCodeCompiler.Test\RoslynCodeCompiler.Test.csproj", "{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{390FB0C2-4B62-7634-1A23-93512F314EA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{390FB0C2-4B62-7634-1A23-93512F314EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{390FB0C2-4B62-7634-1A23-93512F314EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{390FB0C2-4B62-7634-1A23-93512F314EA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C39F2315-016C-46A7-BAEB-5D5652F32D20}
+	EndGlobalSection
+EndGlobal
