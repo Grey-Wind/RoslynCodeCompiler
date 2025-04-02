@@ -30,6 +30,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.13.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="9.0.0" />
     <PackageReference Include="NuGet.Packaging" Version="6.13.2" />
     <PackageReference Include="NuGet.Protocol" Version="6.13.2" />
     <PackageReference Include="NuGet.Resolver" Version="6.13.2" />

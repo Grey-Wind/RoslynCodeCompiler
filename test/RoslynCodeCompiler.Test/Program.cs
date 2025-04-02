@@ -19,7 +19,7 @@ namespace HelloWorld
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             Console.WriteLine(""Hello World!"");
         }
@@ -37,7 +37,7 @@ namespace HelloWorld
 
             try
             {
-                await compiler.CompileAsync(code, "HelloWorld.exe", nugetReferences);
+                await compiler.CompileAsync(code, "output-exe", "HelloWorld.exe", nugetReferences, "win-x64");
                 Console.WriteLine("Compilation succeeded!");
             }
             catch (CompilationException ex)
