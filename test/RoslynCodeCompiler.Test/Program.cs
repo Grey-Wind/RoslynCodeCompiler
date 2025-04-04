@@ -1,51 +1,48 @@
-﻿using NuGet.Versioning;
-using RoslynCodeCompiler;
+﻿using RoslynCodeCompiler;
 
 namespace CompilerTest
 {
     internal class Program
     {
-        static async Task Main()
+        static Task Main()
         {
-            var runtimeAssembly = typeof(object).Assembly;
-            Console.WriteLine($"System.Runtime Version: {runtimeAssembly.GetName().Version}");
+            var compiler = new CodeCompiler();
 
-            CodeCompiler compiler = new();
-
-            var code = @"
+            // 示例代码
+            string code = @"
 using System;
 
-namespace HelloWorld
+class Program
 {
-    class Program
+    static void Main()
     {
-        static void Main()
-        {
-            Console.WriteLine(""Hello World!"");
-        }
+        Console.WriteLine(""Hello, Compiled Code!"");
+        Console.ReadKey();
     }
 }";
 
-            var nugetReferences = new[]
-            {
-                new NuGetPackageReference
-                {
-                    PackageId = "Newtonsoft.Json",
-                    Version = NuGetVersion.Parse("13.0.1")
-                }
-            };
+            string outputDirectory = @"./CompiledOutput"; // 替换为你的输出目录
 
             try
             {
-                await compiler.CompileAsync(code, "output-exe", "HelloWorld.exe", nugetReferences, "win-x64");
-                Console.WriteLine("Compilation succeeded!");
+                Directory.CreateDirectory(outputDirectory);
+                compiler.code = code;
+                compiler.dotnetVersion = CodeCompiler.DotnetVersion.net8;
+                compiler.buildType = CodeCompiler.BuildType.Debug;
+                compiler.CompileCode(outputDirectory);
+                List<CodeCompiler.DotnetVersion> list = compiler.CheckLocalVersion();
+                foreach (var netv in list)
+                {
+                    Console.WriteLine(netv);
+                }
             }
-            catch (CompilationException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"错误：{ex.Message}");
             }
 
             Console.ReadLine();
+            return Task.CompletedTask;
         }
     }
 }

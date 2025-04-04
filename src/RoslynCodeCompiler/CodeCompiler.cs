@@ -1,315 +1,342 @@
-﻿using System.ComponentModel;
-using System.Runtime;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.Extensions.DependencyModel;
-using NuGet.Common;
-using NuGet.Configuration;
-using NuGet.Frameworks;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
-using NuGet.Packaging.Signing;
-using NuGet.Protocol.Core.Types;
-using NuGet.Resolver;
+﻿using System.Diagnostics;
+using System.Linq;
 
 namespace RoslynCodeCompiler
 {
     public class CodeCompiler
     {
-        public async Task CompileAsync(
-            string code,
-            string outputDirectory,
-            string assemblyName,
-            IEnumerable<NuGetPackageReference>? nuGetReferences = null,
-            string runtimeIdentifier = "win-x64")
+        private readonly string net5ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>";
+        private readonly string net6ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>";
+        private readonly string net7ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>";
+        private readonly string net8ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>";
+        private readonly string net9ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>";
+
+        public enum DotnetVersion
         {
-            // 创建输出目录
-            Directory.CreateDirectory(outputDirectory);
-            var outputPath = Path.Combine(outputDirectory, $"{assemblyName}.exe");
+            net5,
+            net6,
+            net7,
+            net8,
+            net9,
+        }
 
-            // Validate code for top-level statements
-            var syntaxTree = CSharpSyntaxTree.ParseText(code);
-            var root = await syntaxTree.GetRootAsync();
-            if (root.DescendantNodes().OfType<GlobalStatementSyntax>().Any())
+        public enum BuildType
+        {
+            Release,
+            Debug,
+        }
+
+        public DotnetVersion dotnetVersion { get; set; } = DotnetVersion.net6;
+        public BuildType buildType {  get; set; } = BuildType.Release;
+        public string code {  get; set; }
+
+        public void CompileCode(string outputPath)
+        {
+            // 创建临时目录
+            string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDir);
+
+            try
             {
-                throw new ArgumentException("Top-level statements are not allowed.");
+                // 创建项目文件
+                string projectFile = Path.Combine(tempDir, "TempProject.csproj");
+
+                switch (dotnetVersion)
+                {
+                    case DotnetVersion.net5:
+                        File.WriteAllText(projectFile, net5ProjectContent);
+                        break;
+                    case DotnetVersion.net6:
+                        File.WriteAllText(projectFile, net6ProjectContent);
+                        break;
+                    case DotnetVersion.net7:
+                        File.WriteAllText(projectFile, net7ProjectContent);
+                        break;
+                    case DotnetVersion.net8:
+                        File.WriteAllText(projectFile, net8ProjectContent);
+                        break;
+                    case DotnetVersion.net9:
+                        File.WriteAllText(projectFile, net9ProjectContent);
+                        break;
+                    default:
+                        File.WriteAllText(projectFile, net6ProjectContent);
+                        break;
+                }
+
+                // 创建源代码文件
+                string sourceFile = Path.Combine(tempDir, "Program.cs");
+                File.WriteAllText(sourceFile, code);
+
+                // 执行编译命令
+                if (buildType == BuildType.Release)
+                {
+                    var process = new Process()
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "dotnet",
+                            Arguments = $"build -c Release -o {Path.Combine(tempDir, "output")}",
+                            WorkingDirectory = tempDir,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        throw new Exception($"编译失败：\n{output}\n{error}");
+                    }
+
+                    // 复制生成的文件
+                    string outputDir = Path.Combine(tempDir, "output");
+                    foreach (var file in Directory.GetFiles(outputDir))
+                    {
+                        File.Copy(file, Path.Combine(outputPath, Path.GetFileName(file)), true);
+                    }
+
+                    Console.WriteLine($"编译成功！输出文件已保存到：{outputPath}");
+                }
+                else
+                {
+                    var process = new Process()
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "dotnet",
+                            Arguments = $"build -c Debug -o {Path.Combine(tempDir, "output")}",
+                            WorkingDirectory = tempDir,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        throw new Exception($"编译失败：\n{output}\n{error}");
+                    }
+
+                    // 复制生成的文件
+                    string outputDir = Path.Combine(tempDir, "output");
+                    foreach (var file in Directory.GetFiles(outputDir))
+                    {
+                        File.Copy(file, Path.Combine(outputPath, Path.GetFileName(file)), true);
+                    }
+
+                    Console.WriteLine($"编译成功！输出文件已保存到：{outputPath}");
+                }
             }
-
-            // Prepare metadata references
-            var references = new List<MetadataReference>();
-            references.AddRange(GetDefaultReferences());
-
-            // Add NuGet references
-            if (nuGetReferences != null && nuGetReferences.Any())
+            finally
             {
-                await AddNuGetReferencesAsync(nuGetReferences, references);
-            }
-
-            #region 配置编译选项
-            // 配置编译选项
-            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication)
-                .WithOptimizationLevel(OptimizationLevel.Release)
-                .WithPlatform(Platform.AnyCpu);
-
-            var compilation = CSharpCompilation.Create(
-                assemblyName,
-                syntaxTrees: new[] { syntaxTree },
-                references: references,
-                options: options);
-
-            // 配置Emit参数
-            var emitOptions = new EmitOptions(
-                debugInformationFormat: DebugInformationFormat.Embedded,
-                pdbFilePath: Path.Combine(outputDirectory, $"{assemblyName}.pdb"));
-
-            // 执行编译输出到文件
-            var result = compilation.Emit(outputPath);
-            #endregion
-
-            if (result.Success)
-            {
-                // 使用.NET 6兼容的依赖复制方式
-                CopyRuntimeDependencies(outputDirectory);
+                // 清理临时目录
+                Directory.Delete(tempDir, true);
             }
         }
 
-        private void CopyRuntimeDependencies(string outputDir)
+        public List<DotnetVersion> CheckLocalVersion()
         {
-            // 获取当前运行时目录
-            var runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+            List<string> versions = GetInstalledNet5PlusVersions();
+            List<DotnetVersion> dotnetVersions = new();
 
-            // 需要复制的基础程序集列表
-            var essentialAssemblies = new[]
+            foreach (string version in versions)
             {
-            "System.Private.CoreLib.dll",
-            "System.Runtime.dll",
-            "netstandard.dll",
-            "System.Console.dll",
-            "System.Threading.Tasks.dll",
-            "System.Linq.dll"
-        };
-
-            // 复制基础程序集
-            foreach (var asm in essentialAssemblies)
-            {
-                var sourcePath = Path.Combine(runtimeDir, asm);
-                if (File.Exists(sourcePath))
+                if (version.Contains(".NET 5"))
                 {
-                    File.Copy(
-                        sourcePath,
-                        Path.Combine(outputDir, asm),
-                        overwrite: true);
+                    if (!dotnetVersions.Contains(DotnetVersion.net5))
+                    {
+                        dotnetVersions.Add(DotnetVersion.net5);
+                        //Console.WriteLine(5);
+                    }
+                }
+                else if (version.Contains(".NET 6"))
+                {
+                    if (!dotnetVersions.Contains(DotnetVersion.net6))
+                    {
+                        dotnetVersions.Add(DotnetVersion.net6);
+                        //Console.WriteLine(6);
+                    }
+                }
+                else if (version.Contains(".NET 7"))
+                {
+                    if (!dotnetVersions.Contains(DotnetVersion.net7))
+                    {
+                        dotnetVersions.Add(DotnetVersion.net7);
+                        //Console.WriteLine(7);
+                    }
+                }
+                else if (version.Contains(".NET 8"))
+                {
+                    if (!dotnetVersions.Contains(DotnetVersion.net8))
+                    {
+                        dotnetVersions.Add(DotnetVersion.net8);
+                        //Console.WriteLine(8);
+                    }
+                }
+                else if (version.Contains(".NET 9"))
+                {
+                    if (!dotnetVersions.Contains(DotnetVersion.net9))
+                    {
+                        dotnetVersions.Add(DotnetVersion.net9);
+                        //Console.WriteLine(9);
+                    }
                 }
             }
 
-            // 复制所有.NET运行时DLL（可选）
-            foreach (var file in Directory.GetFiles(runtimeDir, "*.dll"))
-            {
-                var destPath = Path.Combine(outputDir, Path.GetFileName(file));
-                if (!File.Exists(destPath))
-                {
-                    File.Copy(file, destPath);
-                }
-            }
+            return dotnetVersions;
         }
 
-        // 修改后的GetDefaultReferences方法
-        private IEnumerable<MetadataReference> GetDefaultReferences()
+        public static List<string> GetInstalledNet5PlusVersions()
         {
-            var assemblies = new[]
+            var versions = new HashSet<string>();
+
+            try
             {
-                // 基础类型程序集
-                typeof(object).Assembly,           // System.Runtime
-                typeof(Uri).Assembly,              // System.Private.Uri
-                typeof(GCSettings).Assembly,  // System.Private.CoreLib
-                typeof(Enum).Assembly,         // System.Runtime
-                typeof(ValueType).Assembly,     // System.Runtime
-                typeof(Delegate).Assembly,      // System.Runtime
-                typeof(Task).Assembly,          // System.Threading.Tasks
-                typeof(Console).Assembly,       // System.Console
-                typeof(Enumerable).Assembly,    // System.Linq
-                typeof(IQueryable).Assembly,    // System.Linq.Expressions
-                typeof(Decimal).Assembly,       // System.Runtime
-                typeof(EditorBrowsableAttribute).Assembly // System.ComponentModel.TypeConverter
+                // 执行命令获取运行时列表
+                string output = ExecuteDotnetListCommand();
+
+                // 逐行解析输出
+                foreach (string line in output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (TryParseNet5PlusVersion(line, out string version))
+                    {
+                        versions.Add(version);
+                    }
+                }
+            }
+            catch { /* 异常处理 */ }
+
+            // 转换为有序列表
+            var result = new List<string>(versions);
+            result.Sort(CompareVersions);
+            return result;
+        }
+
+        private static string ExecuteDotnetListCommand()
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = "--list-runtimes",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
             };
 
-            var netstandardAssembly = AppDomain.CurrentDomain.GetAssemblies()
-                .FirstOrDefault(a => a.GetName().Name == "netstandard");
-
-            var references = new List<MetadataReference>();
-
-            // 添加自动发现的程序集
-            foreach (var assembly in assemblies)
+            using (var process = new Process { StartInfo = startInfo })
             {
-                try
-                {
-                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
-                }
-                catch
-                {
-                    // 处理部分程序集无法加载的情况
-                }
-            }
-
-            // 手动添加关键程序集
-            AddAssemblyIfMissing(references, "System.Private.CoreLib");
-            AddAssemblyIfMissing(references, "System.Runtime");
-            AddAssemblyIfMissing(references, "netstandard");
-
-            // 添加netstandard引用
-            if (netstandardAssembly != null)
-            {
-                references.Add(MetadataReference.CreateFromFile(netstandardAssembly.Location));
-            }
-
-            return references;
-        }
-
-        // 辅助方法：添加缺失的程序集引用
-        private void AddAssemblyIfMissing(List<MetadataReference> references, string assemblyName)
-        {
-            var assembly = AppDomain.CurrentDomain.GetAssemblies()
-                .FirstOrDefault(a => a.GetName().Name == assemblyName);
-
-            if (assembly != null && !references.Any(r => r.Display?.Contains(assemblyName) == true))
-            {
-                references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit(3000); // 3秒超时
+                return output;
             }
         }
 
-        private async Task AddNuGetReferencesAsync(IEnumerable<NuGetPackageReference> nuGetReferences,
-                                                   List<MetadataReference> metadataReferences)
+        private static bool TryParseNet5PlusVersion(string line, out string version)
         {
-            using var cache = new SourceCacheContext();
-            var logger = NullLogger.Instance;
-            var cancellationToken = CancellationToken.None;
+            version = null;
 
-            var settings = Settings.LoadDefaultSettings(root: null);
-            var sourceRepositoryProvider = new SourceRepositoryProvider(
-                new PackageSourceProvider(settings), Repository.Provider.GetCoreV3());
-
-            foreach (var packageRef in nuGetReferences)
+            // 过滤有效运行时组件
+            if (!line.StartsWith("Microsoft.NETCore.App") &&
+                !line.StartsWith("Microsoft.AspNetCore.App") &&
+                !line.StartsWith("Microsoft.WindowsDesktop.App"))
             {
-                var repositories = sourceRepositoryProvider.GetRepositories();
-                var availablePackages = new HashSet<SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
-
-                // 获取包依赖的正确方式
-                await GetPackageDependenciesAsync(
-                    new PackageIdentity(packageRef.PackageId, packageRef.Version),
-                    repositories,
-                    cache,
-                    logger,
-                    cancellationToken,
-                    availablePackages);
-
-                // 创建正确的PackageResolverContext
-                var resolverContext = new PackageResolverContext(
-                    dependencyBehavior: DependencyBehavior.Lowest,
-                    targetIds: new[] { packageRef.PackageId },
-                    requiredPackageIds: Enumerable.Empty<string>(),
-                    packagesConfig: Enumerable.Empty<PackageReference>(),
-                    preferredVersions: Enumerable.Empty<PackageIdentity>(),
-                    availablePackages: availablePackages,
-                    packageSources: repositories.Select(r => r.PackageSource), // 关键修正点
-                    log: logger);
-
-                var resolver = new PackageResolver();
-                var resolvedPackages = resolver.Resolve(resolverContext, cancellationToken)
-                    .Select(p => availablePackages.Single(x => x.Id == p.Id && x.Version == p.Version));
-
-                foreach (var package in resolvedPackages)
-                {
-                    var repository = sourceRepositoryProvider.GetRepositories().FirstOrDefault(r => r.PackageSource.IsLocal == package.Source.PackageSource.IsLocal);
-
-                    var downloadResource = await repository!.GetResourceAsync<DownloadResource>();
-                    var downloadResult = await downloadResource.GetDownloadResourceResultAsync(
-                        package,
-                        new PackageDownloadContext(cache),
-                        SettingsUtility.GetGlobalPackagesFolder(settings),
-                        logger,
-                        cancellationToken);
-
-                    // 使用正确的包存储路径
-                    var packageDirectory = Path.Combine(
-                        SettingsUtility.GetGlobalPackagesFolder(settings),
-                        package.Id.ToLowerInvariant(),
-                        package.Version.ToNormalizedString());
-
-                    // 使用NuGet.Packaging.PackageExtractor保存包
-                    await PackageExtractor.ExtractPackageAsync(
-                        packageDirectory,
-                        downloadResult.PackageStream,
-                        new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings)),
-                        new PackageExtractionContext(
-                            PackageSaveMode.Defaultv3,
-                            XmlDocFileSaveMode.Skip,
-                            ClientPolicyContext.GetClientPolicy(settings, logger),
-                            logger),
-                        cancellationToken); // 添加的第五个参数
-
-                    AddPackageReferences(packageDirectory, metadataReferences);
-                }
+                return false;
             }
+
+            // 提取版本号
+            string[] parts = line.Split(' ');
+            if (parts.Length < 2) return false;
+
+            try
+            {
+                var ver = new Version(parts[1]);
+                if (ver.Major < 5) return false; // 仅保留5+
+
+                version = $".NET {ver.Major}"; // 格式化为大版本号
+                return true;
+            }
+            catch { return false; }
         }
 
-        private async Task GetPackageDependenciesAsync(
-            PackageIdentity package,
-            IEnumerable<SourceRepository> repositories,
-            SourceCacheContext cache,
-            ILogger logger,
-            CancellationToken cancellationToken,
-            ISet<SourcePackageDependencyInfo> availablePackages)
+        private static int CompareVersions(string a, string b)
         {
-            if (availablePackages.Contains(package)) return;
-
-            foreach (var repo in repositories)
-            {
-                var dependencyInfoResource = await repo.GetResourceAsync<DependencyInfoResource>();
-                var dependencyInfo = await dependencyInfoResource.ResolvePackage(
-                    package,
-                    NuGetFramework.Parse("netstandard2.1"),
-                    cache,
-                    logger,
-                    cancellationToken);
-
-                if (dependencyInfo != null)
-                {
-                    availablePackages.Add(dependencyInfo);
-                    foreach (var dependency in dependencyInfo.Dependencies)
-                    {
-                        await GetPackageDependenciesAsync(
-                            new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion),
-                            repositories,
-                            cache,
-                            logger,
-                            cancellationToken,
-                            availablePackages);
-                    }
-                    break;
-                }
-            }
+            int ExtractVersion(string s) => int.Parse(s.Replace(".NET ", ""));
+            return ExtractVersion(a).CompareTo(ExtractVersion(b));
         }
 
-        private void AddPackageReferences(string packageDirectory, List<MetadataReference> metadataReferences)
+        private static bool TryParseMajorVersion(string line, out string version)
         {
-            var libDir = Path.Combine(packageDirectory, "lib");
-            if (!Directory.Exists(libDir)) return;
+            version = null;
 
-            var targetFrameworks = new[] { "netstandard2.1", "netcoreapp3.1", "net5.0", "net6.0" };
-            foreach (var tf in targetFrameworks)
+            // 匹配有效的运行时前缀
+            if (!line.StartsWith("Microsoft.NETCore.App") &&
+                !line.StartsWith("Microsoft.AspNetCore.App") &&
+                !line.StartsWith("Microsoft.WindowsDesktop.App"))
             {
-                var tfDir = Path.Combine(libDir, tf);
-                if (Directory.Exists(tfDir))
-                {
-                    foreach (var dll in Directory.GetFiles(tfDir, "*.dll"))
-                    {
-                        metadataReferences.Add(MetadataReference.CreateFromFile(dll));
-                    }
-                    break;
-                }
+                return false;
+            }
+
+            // 提取版本号
+            var segments = line.Split(' ');
+            if (segments.Length < 2) return false;
+
+            try
+            {
+                var ver = new Version(segments[1]);
+                version = $".NET {ver.Major}";  // 只取主版本号
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RoslynCodeCompiler\RoslynCodeCompiler.csproj" />
+    <ProjectReference Include="..\..\src\RoslynCodeCompiler\DotnetCodeCompiler.csproj" />
   </ItemGroup>
 
 </Project>
