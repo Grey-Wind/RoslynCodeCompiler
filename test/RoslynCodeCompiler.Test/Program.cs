@@ -27,8 +27,8 @@ class Program
             {
                 Directory.CreateDirectory(outputDirectory);
                 compiler.Code = code;
-                compiler.dotnetVersion = CodeCompiler.DotnetVersion.net8;
-                compiler.buildType = CodeCompiler.BuildType.Debug;
+                compiler.dotnetVersion = CodeCompiler.DotnetVersion.auto;
+                compiler.buildType = CodeCompiler.BuildType.Release;
                 compiler.CompileCode(outputDirectory);
                 List<CodeCompiler.DotnetVersion> list = compiler.CheckLocalVersion();
                 foreach (var netv in list)

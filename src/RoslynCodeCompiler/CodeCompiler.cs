@@ -102,7 +102,7 @@ namespace DotnetCodeCompiler
         /// <summary>
         /// Select the one to use when building .NET version
         /// </summary>
-        public DotnetVersion dotnetVersion { get; set; } = DotnetVersion.net6;
+        public DotnetVersion dotnetVersion { get; set; } = DotnetVersion.auto;
 
         /// <summary>
         /// Select the build mode
@@ -116,6 +116,29 @@ namespace DotnetCodeCompiler
         #endregion
 
         #region public method
+#pragma warning disable 8618
+        /// <summary>
+        /// Compile by calling the command line .NET project
+        /// </summary>
+        /// <param name="dv">.NET version</param>
+        public CodeCompiler(DotnetVersion dv = DotnetVersion.auto)
+        {
+            dotnetVersion = dv;
+            AutoNetVersionSelect();
+        }
+#pragma warning restore 8618
+        /// <summary>
+        /// Compile by calling the command line .NET project
+        /// </summary>
+        /// <param name="c">Code</param>
+        /// <param name="dv">.NET version</param>
+        public CodeCompiler(string c, DotnetVersion dv = DotnetVersion.auto)
+        {
+            Code = c;
+            dotnetVersion = dv;
+            AutoNetVersionSelect();
+        }
+
         /// <summary>
         /// Start compiling code
         /// </summary>
@@ -291,6 +314,44 @@ namespace DotnetCodeCompiler
             }
 
             return dotnetVersions;
+        }
+        #endregion
+
+        #region private method
+        private void AutoNetVersionSelect()
+        {
+            if (dotnetVersion != DotnetVersion.auto)
+            {
+                return;
+            }
+
+            List<DotnetVersion> dvs = CheckLocalVersion();
+
+            if (dvs == null)
+            {
+                return;
+            }
+
+            if (dvs.Contains(DotnetVersion.net5))
+            {
+                dotnetVersion = DotnetVersion.net5;
+            }
+            else if (dvs.Contains(DotnetVersion.net6))
+            {
+                dotnetVersion = DotnetVersion.net6;
+            }
+            else if (dvs.Contains(DotnetVersion.net7))
+            {
+                dotnetVersion = DotnetVersion.net7;
+            }
+            else if (dvs.Contains(DotnetVersion.net8))
+            {
+                dotnetVersion = DotnetVersion.net8;
+            }
+            else if (dvs.Contains(DotnetVersion.net9))
+            {
+                dotnetVersion = DotnetVersion.net9;
+            }
         }
         #endregion
     }
