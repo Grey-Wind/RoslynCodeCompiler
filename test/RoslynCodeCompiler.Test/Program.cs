@@ -26,7 +26,7 @@ class Program
             try
             {
                 Directory.CreateDirectory(outputDirectory);
-                compiler.code = code;
+                compiler.Code = code;
                 compiler.dotnetVersion = CodeCompiler.DotnetVersion.net8;
                 compiler.buildType = CodeCompiler.BuildType.Debug;
                 compiler.CompileCode(outputDirectory);
