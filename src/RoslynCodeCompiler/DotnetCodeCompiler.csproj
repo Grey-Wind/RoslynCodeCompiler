@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>.NET Code Compiler</Title>
-    <Version>1.0.0-beta1</Version>
+    <Version>1.0.0-beta2</Version>
     <Authors>Grey-Wind</Authors>
     <Copyright>LGPL-2.1</Copyright>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>Roslyn</PackageTags>
+    <PackageTags>Compiler</PackageTags>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <IncludeSymbols>True</IncludeSymbols>
@@ -18,6 +18,11 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Description>Compile code using the command line.</Description>
+    <RepositoryUrl>https://github.com/Grey-Wind/RoslynCodeCompiler</RepositoryUrl>
+    <PackageReleaseNotes>XML document
+New namespace
+Add auto choose .net version method</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
