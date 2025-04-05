@@ -7,6 +7,7 @@ namespace DotnetCodeCompiler
     /// </summary>
     public class CodeCompiler
     {
+        #region private fields
         private readonly string net5ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -47,7 +48,9 @@ namespace DotnetCodeCompiler
     <Nullable>enable</Nullable>
   </PropertyGroup>
 </Project>";
+        #endregion
 
+        #region enum
         /// <summary>
         /// Select the version of .NET
         /// </summary>
@@ -84,20 +87,35 @@ namespace DotnetCodeCompiler
         /// </summary>
         public enum BuildType
         {
+            /// <summary>
+            /// Release
+            /// </summary>
             Release,
+            /// <summary>
+            /// Debug
+            /// </summary>
             Debug,
         }
+        #endregion
 
+        #region public fields
         /// <summary>
         /// Select the one to use when building .NET version
         /// </summary>
         public DotnetVersion dotnetVersion { get; set; } = DotnetVersion.net6;
+
         /// <summary>
         /// Select the build mode
         /// </summary>
         public BuildType buildType {  get; set; } = BuildType.Release;
-        public string code {  get; set; }
 
+        /// <summary>
+        /// Code to compile
+        /// </summary>
+        public string Code {  get; set; }
+        #endregion
+
+        #region public method
         /// <summary>
         /// Start compiling code
         /// </summary>
@@ -138,7 +156,7 @@ namespace DotnetCodeCompiler
 
                 // 创建源代码文件
                 string sourceFile = Path.Combine(tempDir, "Program.cs");
-                File.WriteAllText(sourceFile, code);
+                File.WriteAllText(sourceFile, Code);
 
                 // 执行编译命令
                 if (buildType == BuildType.Release)
@@ -274,6 +292,7 @@ namespace DotnetCodeCompiler
 
             return dotnetVersions;
         }
+        #endregion
 
         private static List<string> GetInstalledNet5PlusVersions()
         {
