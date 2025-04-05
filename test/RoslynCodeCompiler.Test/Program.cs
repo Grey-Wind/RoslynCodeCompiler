@@ -1,4 +1,4 @@
-﻿using RoslynCodeCompiler;
+﻿using DotnetCodeCompiler;
 
 namespace CompilerTest
 {

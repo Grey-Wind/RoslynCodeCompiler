@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
-using System.Linq;
 
-namespace RoslynCodeCompiler
+namespace DotnetCodeCompiler
 {
+    /// <summary>
+    /// Compile by calling the command line .NET project
+    /// </summary>
     public class CodeCompiler
     {
         private readonly string net5ProjectContent = @"<Project Sdk=""Microsoft.NET.Sdk"">
@@ -46,25 +48,61 @@ namespace RoslynCodeCompiler
   </PropertyGroup>
 </Project>";
 
+        /// <summary>
+        /// Select the version of .NET
+        /// </summary>
         public enum DotnetVersion
         {
+            /// <summary>
+            /// Auto get the recommand .NET version and select and build
+            /// </summary>
+            auto,
+            /// <summary>
+            /// .NET 5.0
+            /// </summary>
             net5,
+            /// <summary>
+            /// .NET 6.0
+            /// </summary>
             net6,
+            /// <summary>
+            /// .NET 7.0
+            /// </summary>
             net7,
+            /// <summary>
+            /// .NET 8.0
+            /// </summary>
             net8,
+            /// <summary>
+            /// .NET 8.0
+            /// </summary>
             net9,
         }
 
+        /// <summary>
+        /// Select the build mode of .NET
+        /// </summary>
         public enum BuildType
         {
             Release,
             Debug,
         }
 
+        /// <summary>
+        /// Select the one to use when building .NET version
+        /// </summary>
         public DotnetVersion dotnetVersion { get; set; } = DotnetVersion.net6;
+        /// <summary>
+        /// Select the build mode
+        /// </summary>
         public BuildType buildType {  get; set; } = BuildType.Release;
         public string code {  get; set; }
 
+        /// <summary>
+        /// Start compiling code
+        /// </summary>
+        /// <param name="outputPath">Output path</param>
+        /// <exception cref="Exception">Compilation failure</exception>
         public void CompileCode(string outputPath)
         {
             // 创建临时目录
@@ -181,6 +219,10 @@ namespace RoslynCodeCompiler
             }
         }
 
+        /// <summary>
+        /// Get locally available. NET version
+        /// </summary>
+        /// <returns>A list of all available.NET versions</returns>
         public List<DotnetVersion> CheckLocalVersion()
         {
             List<string> versions = GetInstalledNet5PlusVersions();
@@ -233,7 +275,7 @@ namespace RoslynCodeCompiler
             return dotnetVersions;
         }
 
-        public static List<string> GetInstalledNet5PlusVersions()
+        private static List<string> GetInstalledNet5PlusVersions()
         {
             var versions = new HashSet<string>();
 
@@ -270,13 +312,11 @@ namespace RoslynCodeCompiler
                 CreateNoWindow = true
             };
 
-            using (var process = new Process { StartInfo = startInfo })
-            {
-                process.Start();
-                string output = process.StandardOutput.ReadToEnd();
-                process.WaitForExit(3000); // 3秒超时
-                return output;
-            }
+            using var process = new Process { StartInfo = startInfo };
+            process.Start();
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(1000); // 3秒超时
+            return output;
         }
 
         private static bool TryParseNet5PlusVersion(string line, out string version)
@@ -308,7 +348,7 @@ namespace RoslynCodeCompiler
 
         private static int CompareVersions(string a, string b)
         {
-            int ExtractVersion(string s) => int.Parse(s.Replace(".NET ", ""));
+            static int ExtractVersion(string s) => int.Parse(s.Replace(".NET ", ""));
             return ExtractVersion(a).CompareTo(ExtractVersion(b));
         }
 
