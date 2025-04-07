@@ -113,6 +113,23 @@ namespace DotnetCodeCompiler
         /// Code to compile
         /// </summary>
         public string Code {  get; set; }
+
+        /// <summary>
+        /// The name of the project.
+        /// </summary>
+        public string ProjectName { get; set; }
+
+        /// <summary>
+        /// The output file path. Include the .exe .
+        /// </summary>
+        public string AppPath { get; private set; }
+
+        /// <summary>
+        /// The output file path. Not include the .exe .
+        /// </summary>
+        public string AppFolderPath { get; private set; }
+
+        public string AppName {  get; private set; }
         #endregion
 
         #region public method
@@ -120,24 +137,29 @@ namespace DotnetCodeCompiler
         /// <summary>
         /// Compile by calling the command line .NET project
         /// </summary>
+        /// <param name="projectName">The name of the project</param>
         /// <param name="dv">.NET version</param>
-        public CodeCompiler(DotnetVersion dv = DotnetVersion.auto)
+        public CodeCompiler(string projectName, DotnetVersion dv = DotnetVersion.auto)
         {
             dotnetVersion = dv;
+            ProjectName = projectName;
             AutoNetVersionSelect();
         }
-#pragma warning restore 8618
+
         /// <summary>
         /// Compile by calling the command line .NET project
         /// </summary>
+        /// <param name="projectName">The name of the project</param>
         /// <param name="c">Code</param>
         /// <param name="dv">.NET version</param>
-        public CodeCompiler(string c, DotnetVersion dv = DotnetVersion.auto)
+        public CodeCompiler(string projectName, string c, DotnetVersion dv = DotnetVersion.auto)
         {
+            ProjectName = projectName;
             Code = c;
             dotnetVersion = dv;
             AutoNetVersionSelect();
         }
+#pragma warning restore 8618
 
         /// <summary>
         /// Start compiling code
@@ -153,7 +175,7 @@ namespace DotnetCodeCompiler
             try
             {
                 // 创建项目文件
-                string projectFile = Path.Combine(tempDir, "TempProject.csproj");
+                string projectFile = Path.Combine(tempDir, $"{ProjectName}.csproj");
 
                 switch (dotnetVersion)
                 {
@@ -252,6 +274,8 @@ namespace DotnetCodeCompiler
 
                     Console.WriteLine($"编译成功！输出文件已保存到：{outputPath}");
                 }
+
+                GenerateOutputInfo(outputPath);
             }
             finally
             {
@@ -259,6 +283,13 @@ namespace DotnetCodeCompiler
                 Directory.Delete(tempDir, true);
             }
         }
+
+        /// <summary>
+        /// Start compiling code
+        /// </summary>
+        /// <param name="outputPath">Output path</param>
+        /// <exception cref="Exception">Compilation failure</exception>
+        public async Task CompileCodeAsync(string outputPath) => await Task.Run(() => CompileCode(outputPath));
 
         /// <summary>
         /// Get locally available. NET version
@@ -352,6 +383,13 @@ namespace DotnetCodeCompiler
             {
                 dotnetVersion = DotnetVersion.net9;
             }
+        }
+
+        private void GenerateOutputInfo(string outputPath)
+        {
+            AppPath = outputPath + "/" + ProjectName + ".exe";
+            AppFolderPath = Path.Combine(outputPath) + "/";
+            AppName = ProjectName + ".exe";
         }
         #endregion
     }

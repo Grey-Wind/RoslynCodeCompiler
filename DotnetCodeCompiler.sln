@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{2467F521-9B75-4F0C-B09E-54BB7C070AB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetCodeCompiler.Test.WPF", "test\DotnetCodeCompiler.Test.WPF\DotnetCodeCompiler.Test.WPF.csproj", "{B95406D2-2EF1-B9CF-5C76-DBBE003E4077}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +30,17 @@ Global
 		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B95406D2-2EF1-B9CF-5C76-DBBE003E4077}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B95406D2-2EF1-B9CF-5C76-DBBE003E4077}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B95406D2-2EF1-B9CF-5C76-DBBE003E4077}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B95406D2-2EF1-B9CF-5C76-DBBE003E4077}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9C4D268D-88C4-9AB6-5515-50E7569CC4F6} = {2467F521-9B75-4F0C-B09E-54BB7C070AB7}
+		{B95406D2-2EF1-B9CF-5C76-DBBE003E4077} = {2467F521-9B75-4F0C-B09E-54BB7C070AB7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C39F2315-016C-46A7-BAEB-5D5652F32D20}
