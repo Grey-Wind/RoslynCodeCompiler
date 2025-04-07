@@ -20,8 +20,9 @@ namespace DotnetCodeCompiler
         /// Start compiling code
         /// </summary>
         /// <param name="outputPath">Output path</param>
+        /// <param name="projectFileContent">Customize the project file contents</param>
         /// <exception cref="Exception">Compilation failure</exception>
-        void CompileCode(string outputPath);
+        void CompileCode(string outputPath, string projectFileContent);
         /// <summary>
         /// Get locally available. NET version
         /// </summary>

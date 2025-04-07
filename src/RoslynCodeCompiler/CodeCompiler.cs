@@ -129,6 +129,9 @@ namespace DotnetCodeCompiler
         /// </summary>
         public string AppFolderPath { get; private set; }
 
+        /// <summary>
+        /// The name of app.
+        /// </summary>
         public string AppName {  get; private set; }
         #endregion
 
@@ -165,8 +168,9 @@ namespace DotnetCodeCompiler
         /// Start compiling code
         /// </summary>
         /// <param name="outputPath">Output path</param>
+        /// <param name="projectFileContent">Customize the project file contents</param>
         /// <exception cref="Exception">Compilation failure</exception>
-        public virtual void CompileCode(string outputPath)
+        public virtual void CompileCode(string outputPath, string? projectFileContent = null)
         {
             // 创建临时目录
             string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -177,26 +181,33 @@ namespace DotnetCodeCompiler
                 // 创建项目文件
                 string projectFile = Path.Combine(tempDir, $"{ProjectName}.csproj");
 
-                switch (dotnetVersion)
+                if (projectFileContent != null)
                 {
-                    case DotnetVersion.net5:
-                        File.WriteAllText(projectFile, net5ProjectContent);
-                        break;
-                    case DotnetVersion.net6:
-                        File.WriteAllText(projectFile, net6ProjectContent);
-                        break;
-                    case DotnetVersion.net7:
-                        File.WriteAllText(projectFile, net7ProjectContent);
-                        break;
-                    case DotnetVersion.net8:
-                        File.WriteAllText(projectFile, net8ProjectContent);
-                        break;
-                    case DotnetVersion.net9:
-                        File.WriteAllText(projectFile, net9ProjectContent);
-                        break;
-                    default:
-                        File.WriteAllText(projectFile, net6ProjectContent);
-                        break;
+                    File.WriteAllText(projectFile, projectFileContent);
+                }
+                else
+                {
+                    switch (dotnetVersion)
+                    {
+                        case DotnetVersion.net5:
+                            File.WriteAllText(projectFile, net5ProjectContent);
+                            break;
+                        case DotnetVersion.net6:
+                            File.WriteAllText(projectFile, net6ProjectContent);
+                            break;
+                        case DotnetVersion.net7:
+                            File.WriteAllText(projectFile, net7ProjectContent);
+                            break;
+                        case DotnetVersion.net8:
+                            File.WriteAllText(projectFile, net8ProjectContent);
+                            break;
+                        case DotnetVersion.net9:
+                            File.WriteAllText(projectFile, net9ProjectContent);
+                            break;
+                        default:
+                            File.WriteAllText(projectFile, net6ProjectContent);
+                            break;
+                    }
                 }
 
                 // 创建源代码文件
@@ -227,7 +238,7 @@ namespace DotnetCodeCompiler
 
                     if (process.ExitCode != 0)
                     {
-                        throw new Exception($"编译失败：\n{output}\n{error}");
+                        throw new Exception($"Compiler：\n{output}\n{error}");
                     }
 
                     // 复制生成的文件
@@ -237,7 +248,7 @@ namespace DotnetCodeCompiler
                         File.Copy(file, Path.Combine(outputPath, Path.GetFileName(file)), true);
                     }
 
-                    Console.WriteLine($"编译成功！输出文件已保存到：{outputPath}");
+                    Debug.WriteLine($"编译成功！输出文件已保存到：{outputPath}");
                 }
                 else
                 {
@@ -288,8 +299,9 @@ namespace DotnetCodeCompiler
         /// Start compiling code
         /// </summary>
         /// <param name="outputPath">Output path</param>
+        /// <param name="projectFileContent">Customize the project file contents</param>
         /// <exception cref="Exception">Compilation failure</exception>
-        public async Task CompileCodeAsync(string outputPath) => await Task.Run(() => CompileCode(outputPath));
+        public async Task CompileCodeAsync(string outputPath, string? projectFileContent = null) => await Task.Run(() => CompileCode(outputPath, projectFileContent));
 
         /// <summary>
         /// Get locally available. NET version
