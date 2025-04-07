@@ -64,7 +64,8 @@ namespace RoslynCodeCompiler.Test.WPF
                 compiler.Code = code;
                 compiler.dotnetVersion = CodeCompiler.DotnetVersion.auto;
                 compiler.buildType = CodeCompiler.BuildType.Release;
-                compiler.CompileCode(outputDirectory);
+                compiler.CompileCode(outputDirectory); // 同步编译
+                // await compiler.CompileCodeAsync(outputDirectory); // 异步编译
 
                 OutputBox.Clear();
 
