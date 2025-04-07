@@ -76,7 +76,6 @@ namespace RoslynCodeCompiler.Test.WPF
                                                                         // 合并路径并解析为绝对路径
                 string absolutePath = Path.GetFullPath(Path.Combine(baseDirectory, compiler.AppFolderPath));
                 MessageBox.Show(absolutePath + compiler.AppName);
-                Thread.Sleep(500);
                 runner.Execute(compiler.AppName, absolutePath);
             }
             catch (Exception ex)
