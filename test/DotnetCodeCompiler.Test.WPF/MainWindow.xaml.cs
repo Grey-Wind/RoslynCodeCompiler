@@ -17,9 +17,11 @@ namespace RoslynCodeCompiler.Test.WPF
         {
             InitializeComponent();
 
+#pragma warning disable CS8622 // 参数类型中引用类型的为 Null 性与目标委托不匹配(可能是由于为 Null 性特性)。
             runner.OutputReceived += OnOutputReceived;
             runner.ErrorReceived += OnErrorReceived;
             runner.Exited += OnExited;
+#pragma warning restore CS8622 // 参数类型中引用类型的为 Null 性与目标委托不匹配(可能是由于为 Null 性特性)。
         }
 
         #region runner
@@ -50,7 +52,7 @@ namespace RoslynCodeCompiler.Test.WPF
         }
         #endregion
 
-        private async void CompilerBtn_Click(object sender, RoutedEventArgs e)
+        private void CompilerBtn_Click(object sender, RoutedEventArgs e)
         {
             var compiler = new CodeCompiler("Test");
 

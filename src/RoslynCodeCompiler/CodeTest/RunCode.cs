@@ -13,11 +13,25 @@ namespace DotnetCodeCompiler.CodeTest
     /// </summary>
     public class RunCode
     {
-        private Process process;
-        public event EventHandler<string> OutputReceived;
-        public event EventHandler<string> ErrorReceived;
-        public event EventHandler Exited;
+        private Process? process;
+        /// <summary>
+        /// Output received event
+        /// </summary>
+        public event EventHandler<string>? OutputReceived;
+        /// <summary>
+        /// Error received event
+        /// </summary>
+        public event EventHandler<string>? ErrorReceived;
+        /// <summary>
+        /// Exited event
+        /// </summary>
+        public event EventHandler? Exited;
 
+        /// <summary>
+        /// Execute the app
+        /// </summary>
+        /// <param name="filePath">File path</param>
+        /// <param name="workingDirectory">Working directory</param>
         public void Execute(string filePath, string workingDirectory)
         {
             try
@@ -40,7 +54,9 @@ namespace DotnetCodeCompiler.CodeTest
                 process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
                 process.StartInfo.StandardErrorEncoding = Encoding.UTF8;
                 process.EnableRaisingEvents = true;
+#pragma warning disable CS8622 // 参数类型中引用类型的为 Null 性与目标委托不匹配(可能是由于为 Null 性特性)。
                 process.Exited += ProcessExited;
+#pragma warning restore CS8622 // 参数类型中引用类型的为 Null 性与目标委托不匹配(可能是由于为 Null 性特性)。
 
                 process.OutputDataReceived += (sender, e) =>
                 {
@@ -69,6 +85,10 @@ namespace DotnetCodeCompiler.CodeTest
             }
         }
 
+        /// <summary>
+        /// Kill the process
+        /// </summary>
+        /// <param name="filePath">File name</param>
         public void Kill(string filePath)
         {
             string processName = Path.GetFileNameWithoutExtension(filePath);
@@ -88,19 +108,19 @@ namespace DotnetCodeCompiler.CodeTest
                     {
                         process.Kill();
                         process.WaitForExit(); // 等待进程终止
-                        Console.WriteLine($"成功终止进程：{process.ProcessName} (ID: {process.Id})");
+                        Console.WriteLine($"Successfully terminated process：{process.ProcessName} (ID: {process.Id})");
                     }
-                    catch (Win32Exception ex)
+                    catch (Win32Exception)
                     {
-                        Console.WriteLine($"权限不足，无法终止 {process.ProcessName}。请以管理员身份运行程序。");
+                        Console.WriteLine($"{process.ProcessName} cannot be terminated because the permission is insufficient. Procedure Please run the program as administrator.");
                     }
                     catch (InvalidOperationException)
                     {
-                        Console.WriteLine($"进程 {process.ProcessName} 已退出。");
+                        Console.WriteLine($"The process {process.ProcessName} has exited.");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"终止 {process.ProcessName} 时出错：{ex.Message}");
+                        Console.WriteLine($"Error terminating {process.ProcessName} : {ex.Message}");
                     }
                 }
             }
@@ -116,6 +136,9 @@ namespace DotnetCodeCompiler.CodeTest
             Cleanup();
         }
 
+        /// <summary>
+        /// Stop the process
+        /// </summary>
         public void Stop()
         {
             try
